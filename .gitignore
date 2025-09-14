@@ -1,0 +1,7 @@
+.bash_history
+.bashrc
+.bashrc.save
+.cache/
+.vscode/
+node-gyp/
+target/
