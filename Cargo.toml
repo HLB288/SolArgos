@@ -1,12 +1,90 @@
-
 [package]
-name = "Rust-Bootcamp-Project"
+name = "solana-dashboard"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
+# Leptos framework
+leptos = { version = "0.6", features = ["csr", "ssr"] }
+leptos_meta = { version = "0.6", features = ["csr", "ssr"] }
+leptos_router = { version = "0.6", features = ["csr", "ssr"] }
+leptos_axum = { version = "0.6", optional = true }
+
+# Async runtime
+tokio = { version = "1.0", features = ["full"], optional = true }
+tower = { version = "0.4", optional = true }
+tower-http = { version = "0.5", features = ["fs", "set-header"], optional = true }
+axum = { version = "0.7", optional = true }
+
+# HTTP client
 reqwest = { version = "0.11", features = ["json"] }
-tokio = { version = "1.0", features = ["full"] }
+
+# Serialization
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+
+# Time handling
 chrono = { version = "0.4", features = ["serde"] }
+
+# WASM support
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+web-sys = "0.3"
+
+# Logging
+log = "0.4"
+console_log = "1.0"
+console_error_panic_hook = "0.1"
+
+# Utils
+gloo = { version = "0.11", features = ["timers"] }
+simple_logger = { version = "4.3", optional = true }
+
+[features]
+default = ["csr"]
+csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
+ssr = [
+    "dep:leptos_axum",
+    "dep:tokio", 
+    "dep:tower",
+    "dep:tower-http",
+    "dep:axum",
+    "dep:simple_logger",
+    "leptos/ssr",
+    "leptos_meta/ssr", 
+    "leptos_router/ssr"
+]
+
+# Configuration Leptos
+[[bin]]
+name = "solana-dashboard"
+required-features = ["ssr"]
+
+# Configuration Leptos complète
+[package.metadata.leptos]
+# Obligatoire
+output-name = "solana-dashboard"
+bin-package = "solana-dashboard"
+lib-package = "solana-dashboard"
+
+# Site configuration
+site-root = "target/site"
+site-pkg-dir = "pkg" 
+assets-dir = "public"
+
+# Server configuration  
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+
+# Build configuration
+bin-features = ["ssr"]
+lib-features = ["csr"]
+
+# Options par défaut
+watch = false
+hot-reload = false
+env = "DEV"
+hash-files = false

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Solana Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-4xl font-bold text-center mb-8">Solana Analytics Dashboard</h1>
+        
+        <div id="loading" class="text-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+            <p class="mt-4">Chargement des données Solana...</p>
+        </div>
+        
+        <div id="dashboard" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Métriques seront injectées ici -->
+        </div>
+        
+        <div id="error" class="hidden text-center text-red-400">
+            <p>Erreur de chargement des données</p>
+        </div>
+    </div>
+
+    <script>
+        async function loadSolanaData() {
+            try {
+                const response = await fetch('/api/solana');
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    displayDashboard(result.data);
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                showError('Erreur de connexion');
+            }
+        }
+
+        function displayDashboard(data) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            document.getElementById('dashboard').innerHTML = `
+                <div class="bg-gray-800 p-6 rounded-lg border border-purple-600">
+                    <h3 class="text-lg font-semibold mb-2">Total Transactions</h3>
+                    <p class="text-2xl font-bold">${data.total_transactions?.toLocaleString()}</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg border border-blue-600">
+                    <h3 class="text-lg font-semibold mb-2">Slot Actuel</h3>
+                    <p class="text-2xl font-bold">${data.current_slot?.toLocaleString()}</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg border border-green-600">
+                    <h3 class="text-lg font-semibold mb-2">TPS Estimé</h3>
+                    <p class="text-2xl font-bold">${data.estimated_tps?.toFixed(0)}</p>
+                </div>
+                <div class="bg-gray-800 p-6 rounded-lg border border-pink-600">
+                    <h3 class="text-lg font-semibold mb-2">Plus Grosse TX</h3>
+                    <p class="text-2xl font-bold">${data.biggest_transaction_sol?.toFixed(2)} SOL</p>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('error').innerHTML = `<p>Erreur: ${message}</p>`;
+        }
+
+        // Charger les données au démarrage
+        loadSolanaData();
+        
+        // Rafraîchir toutes les 30 secondes
+        setInterval(loadSolanaData, 30000);
+    </script>
+</body>
+</html>
