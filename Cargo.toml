@@ -7,19 +7,17 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-# Leptos framework
-leptos = { version = "0.6", features = ["csr", "ssr"] }
-leptos_meta = { version = "0.6", features = ["csr", "ssr"] }
-leptos_router = { version = "0.6", features = ["csr", "ssr"] }
-leptos_axum = { version = "0.6", optional = true }
+# Leptos framework (désactivé pour l'instant - trop complexe en SSR)
+leptos = { version = "0.6", features = ["csr"], optional = true }
+leptos_meta = { version = "0.6", features = ["csr"], optional = true }
+leptos_router = { version = "0.6", features = ["csr"], optional = true }
 
-# Async runtime
-tokio = { version = "1.0", features = ["full"], optional = true }
-tower = { version = "0.4", optional = true }
-tower-http = { version = "0.5", features = ["fs", "set-header"], optional = true }
+# Backend framework
 axum = { version = "0.7", optional = true }
+tokio = { version = "1.0", features = ["full"], optional = true }
+tower-http = { version = "0.5", features = ["fs", "set-header"], optional = true }
 
-# HTTP client
+# HTTP client pour Helius API
 reqwest = { version = "0.11", features = ["json"] }
 
 # Serialization
@@ -29,62 +27,38 @@ serde_json = "1.0"
 # Time handling
 chrono = { version = "0.4", features = ["serde"] }
 
-# WASM support
-wasm-bindgen = "0.2"
-js-sys = "0.3"
-web-sys = "0.3"
-
 # Logging
 log = "0.4"
-console_log = "1.0"
-console_error_panic_hook = "0.1"
+env_logger = { version = "0.11", optional = true }
+console_log = { version = "1.0", optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
-# Utils
-gloo = { version = "0.11", features = ["timers"] }
-simple_logger = { version = "4.3", optional = true }
+# WASM support (pour Leptos si activé)
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true }
+gloo = { version = "0.11", features = ["timers"], optional = true }
 
 [features]
-default = ["csr"]
-csr = ["leptos/csr", "leptos_meta/csr", "leptos_router/csr"]
+default = []
 ssr = [
-    "dep:leptos_axum",
-    "dep:tokio", 
-    "dep:tower",
-    "dep:tower-http",
     "dep:axum",
-    "dep:simple_logger",
-    "leptos/ssr",
-    "leptos_meta/ssr", 
-    "leptos_router/ssr"
+    "dep:tokio",
+    "dep:tower-http",
+    "dep:env_logger",
+]
+csr = [
+    "dep:leptos",
+    "dep:leptos_meta",
+    "dep:leptos_router",
+    "dep:wasm-bindgen",
+    "dep:js-sys",
+    "dep:web-sys",
+    "dep:gloo",
+    "dep:console_log",
+    "dep:console_error_panic_hook",
 ]
 
-# Configuration Leptos
 [[bin]]
 name = "solana-dashboard"
 required-features = ["ssr"]
-
-# Configuration Leptos complète
-[package.metadata.leptos]
-# Obligatoire
-output-name = "solana-dashboard"
-bin-package = "solana-dashboard"
-lib-package = "solana-dashboard"
-
-# Site configuration
-site-root = "target/site"
-site-pkg-dir = "pkg" 
-assets-dir = "public"
-
-# Server configuration  
-site-addr = "127.0.0.1:3000"
-reload-port = 3001
-
-# Build configuration
-bin-features = ["ssr"]
-lib-features = ["csr"]
-
-# Options par défaut
-watch = false
-hot-reload = false
-env = "DEV"
-hash-files = false

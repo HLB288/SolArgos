@@ -4,75 +4,336 @@
     <meta charset="utf-8">
     <title>Solana Analytics Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Header -->
+    <div class="gradient-bg shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex justify-between items-center">
+                <h1 class="text-3xl font-bold">Solana Analytics Dashboard</h1>
+                <div class="flex items-center space-x-4">
+                    <div id="status-indicator" class="flex items-center">
+                        <span class="h-3 w-3 bg-green-500 rounded-full animate-pulse mr-2"></span>
+                        <span class="text-sm">Live</span>
+                    </div>
+                    <div class="text-sm">
+                        <span class="text-gray-200">Dernière MAJ: </span>
+                        <span id="last-update" class="font-semibold">--:--:--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-center mb-8">Solana Analytics Dashboard</h1>
-        
-        <div id="loading" class="text-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
-            <p class="mt-4">Chargement des données Solana...</p>
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-20">
+            <div class="inline-block">
+                <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-500 mb-4"></div>
+                <p class="text-xl">Chargement des données blockchain...</p>
+            </div>
         </div>
-        
-        <div id="dashboard" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Métriques seront injectées ici -->
+
+        <!-- Main Dashboard -->
+        <div id="dashboard" class="hidden">
+            <!-- Stats principales -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 fade-in">
+                <div class="bg-gray-800 rounded-xl p-6 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">Total Transactions</p>
+                            <h3 id="total-tx" class="text-3xl font-bold mt-2">--</h3>
+                        </div>
+                        <div class="bg-purple-500/20 p-3 rounded-lg">
+                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">Historique complet</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">Slot Actuel</p>
+                            <h3 id="current-slot" class="text-3xl font-bold mt-2">--</h3>
+                        </div>
+                        <div class="bg-blue-500/20 p-3 rounded-lg">
+                            <svg class="w-8 h-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">Block height</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">TPS Estimé</p>
+                            <h3 id="tps" class="text-3xl font-bold mt-2">--</h3>
+                        </div>
+                        <div class="bg-green-500/20 p-3 rounded-lg">
+                            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm" id="tps-status">Performance réseau</p>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6 border-l-4 border-pink-500 hover:shadow-xl transition-shadow">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <p class="text-gray-400 text-sm font-medium">Plus Grosse TX</p>
+                            <h3 id="biggest-tx" class="text-3xl font-bold mt-2">--</h3>
+                        </div>
+                        <div class="bg-pink-500/20 p-3 rounded-lg">
+                            <svg class="w-8 h-8 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-500">Dernières 24h</p>
+                </div>
+            </div>
+
+            <!-- Graphiques et infos détaillées -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Graphique TPS -->
+                <div class="lg:col-span-2 bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-4">Performance TPS</h3>
+                    <canvas id="tpsChart" height="100"></canvas>
+                </div>
+
+                <!-- Statistiques réseau -->
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-4">Statistiques Réseau</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                            <span class="text-gray-400">Transactions/h</span>
+                            <span id="tx-per-hour" class="font-bold text-purple-400">--</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                            <span class="text-gray-400">Transactions/min</span>
+                            <span id="tx-per-min" class="font-bold text-blue-400">--</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                            <span class="text-gray-400">Transactions/sec</span>
+                            <span id="tx-per-sec" class="font-bold text-green-400">--</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-700/50 rounded-lg">
+                            <span class="text-gray-400">Statut</span>
+                            <span id="network-status" class="font-bold">--</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Infos complémentaires -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-4">À Propos de Solana</h3>
+                    <div class="space-y-3 text-gray-300">
+                        <p class="flex items-start">
+                            <span class="text-purple-400 mr-2">•</span>
+                            Blockchain haute performance avec jusqu'à 65 000 TPS théoriques
+                        </p>
+                        <p class="flex items-start">
+                            <span class="text-purple-400 mr-2">•</span>
+                            Temps de bloc: ~400ms en moyenne
+                        </p>
+                        <p class="flex items-start">
+                            <span class="text-purple-400 mr-2">•</span>
+                            Consensus: Proof of History (PoH) + Proof of Stake (PoS)
+                        </p>
+                        <p class="flex items-start">
+                            <span class="text-purple-400 mr-2">•</span>
+                            Frais de transaction: ~0.00025 SOL en moyenne
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl p-6">
+                    <h3 class="text-xl font-bold mb-4">Source de Données</h3>
+                    <div class="space-y-3 text-gray-300">
+                        <p class="flex items-start">
+                            <span class="text-blue-400 mr-2">•</span>
+                            API: Helius RPC
+                        </p>
+                        <p class="flex items-start">
+                            <span class="text-blue-400 mr-2">•</span>
+                            Mise à jour: Toutes les 30 secondes
+                        </p>
+                        <p class="flex items-start">
+                            <span class="text-blue-400 mr-2">•</span>
+                            Technologies: Rust + Axum + Tokio
+                        </p>
+                        <p class="flex items-start">
+                            <span class="text-blue-400 mr-2">•</span>
+                            Interface: HTML5 + Tailwind CSS + Chart.js
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-        
-        <div id="error" class="hidden text-center text-red-400">
-            <p>Erreur de chargement des données</p>
+
+        <!-- Error State -->
+        <div id="error" class="hidden text-center py-20">
+            <div class="text-red-400 text-6xl mb-4">⚠</div>
+            <h2 class="text-2xl font-bold mb-2">Erreur de Connexion</h2>
+            <p id="error-message" class="text-gray-400 mb-6">--</p>
+            <button onclick="loadSolanaData()" class="bg-purple-600 hover:bg-purple-700 px-6 py-3 rounded-lg font-semibold transition-colors">
+                Réessayer
+            </button>
         </div>
     </div>
 
     <script>
+        let tpsChart = null;
+        let tpsHistory = [];
+
         async function loadSolanaData() {
             try {
                 const response = await fetch('/api/solana');
-                const result = await response.json();
+                const data = await response.json();
                 
-                if (result.status === 'success') {
-                    displayDashboard(result.data);
+                if (data.status === 'success') {
+                    displayDashboard(data);
+                    updateLastUpdate();
                 } else {
-                    showError(result.message);
+                    showError(data.message || 'Erreur inconnue');
                 }
             } catch (error) {
-                showError('Erreur de connexion');
+                showError('Impossible de se connecter à l\'API');
             }
         }
 
         function displayDashboard(data) {
             document.getElementById('loading').classList.add('hidden');
             document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('error').classList.add('hidden');
             
-            document.getElementById('dashboard').innerHTML = `
-                <div class="bg-gray-800 p-6 rounded-lg border border-purple-600">
-                    <h3 class="text-lg font-semibold mb-2">Total Transactions</h3>
-                    <p class="text-2xl font-bold">${data.total_transactions?.toLocaleString()}</p>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-lg border border-blue-600">
-                    <h3 class="text-lg font-semibold mb-2">Slot Actuel</h3>
-                    <p class="text-2xl font-bold">${data.current_slot?.toLocaleString()}</p>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-lg border border-green-600">
-                    <h3 class="text-lg font-semibold mb-2">TPS Estimé</h3>
-                    <p class="text-2xl font-bold">${data.estimated_tps?.toFixed(0)}</p>
-                </div>
-                <div class="bg-gray-800 p-6 rounded-lg border border-pink-600">
-                    <h3 class="text-lg font-semibold mb-2">Plus Grosse TX</h3>
-                    <p class="text-2xl font-bold">${data.biggest_transaction_sol?.toFixed(2)} SOL</p>
-                </div>
-            `;
+            // Métriques principales
+            document.getElementById('total-tx').textContent = data.total_transactions.toLocaleString();
+            document.getElementById('current-slot').textContent = data.current_slot.toLocaleString();
+            document.getElementById('tps').textContent = Math.round(data.estimated_tps);
+            document.getElementById('biggest-tx').textContent = data.biggest_transaction_sol.toFixed(2) + ' SOL';
+            
+            // Statut TPS
+            const tpsStatus = document.getElementById('tps-status');
+            if (data.estimated_tps > 3000) {
+                tpsStatus.textContent = '🟢 Excellente';
+                tpsStatus.className = 'text-sm text-green-400';
+            } else if (data.estimated_tps > 2000) {
+                tpsStatus.textContent = '🟡 Bonne';
+                tpsStatus.className = 'text-sm text-yellow-400';
+            } else {
+                tpsStatus.textContent = '🟠 Modérée';
+                tpsStatus.className = 'text-sm text-orange-400';
+            }
+            
+            // Stats calculées
+            const txPerSec = Math.round(data.estimated_tps);
+            const txPerMin = txPerSec * 60;
+            const txPerHour = txPerMin * 60;
+            
+            document.getElementById('tx-per-sec').textContent = txPerSec.toLocaleString();
+            document.getElementById('tx-per-min').textContent = txPerMin.toLocaleString();
+            document.getElementById('tx-per-hour').textContent = txPerHour.toLocaleString();
+            
+            // Statut réseau
+            const networkStatus = document.getElementById('network-status');
+            if (data.estimated_tps > 3000) {
+                networkStatus.textContent = '🟢 Opérationnel';
+                networkStatus.className = 'font-bold text-green-400';
+            } else {
+                networkStatus.textContent = '🟡 Dégradé';
+                networkStatus.className = 'font-bold text-yellow-400';
+            }
+            
+            // Mise à jour du graphique
+            updateChart(data.estimated_tps);
+        }
+
+        function updateChart(tps) {
+            tpsHistory.push(tps);
+            if (tpsHistory.length > 20) tpsHistory.shift();
+            
+            const ctx = document.getElementById('tpsChart').getContext('2d');
+            
+            if (tpsChart) {
+                tpsChart.data.labels.push('');
+                tpsChart.data.datasets[0].data = tpsHistory;
+                if (tpsChart.data.labels.length > 20) tpsChart.data.labels.shift();
+                tpsChart.update();
+            } else {
+                tpsChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Array(tpsHistory.length).fill(''),
+                        datasets: [{
+                            label: 'TPS',
+                            data: tpsHistory,
+                            borderColor: '#8b5cf6',
+                            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: '#374151' },
+                                ticks: { color: '#9ca3af' }
+                            },
+                            x: {
+                                grid: { display: false },
+                                ticks: { display: false }
+                            }
+                        }
+                    }
+                });
+            }
         }
 
         function showError(message) {
             document.getElementById('loading').classList.add('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
             document.getElementById('error').classList.remove('hidden');
-            document.getElementById('error').innerHTML = `<p>Erreur: ${message}</p>`;
+            document.getElementById('error-message').textContent = message;
         }
 
-        // Charger les données au démarrage
+        function updateLastUpdate() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('fr-FR');
+            document.getElementById('last-update').textContent = timeStr;
+        }
+
+        // Chargement initial
         loadSolanaData();
         
-        // Rafraîchir toutes les 30 secondes
+        // Rafraîchissement automatique toutes les 30 secondes
         setInterval(loadSolanaData, 30000);
     </script>
 </body>
