@@ -4,3 +4,5 @@ target/
 .bash_history
 .bashrc
 .bashrc.save
+
+.env
