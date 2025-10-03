@@ -4,47 +4,6 @@ use axum::{Router, response::Html, Json};
 use tower_http::services::ServeDir;
 use std::env;
 use data::get_solana_metrics;
-// Route API qui utilise les vraies données Helius
-// async fn get_solana_data() -> Json<serde_json::Value> {
-//     // Récupérer la clé API depuis les variables d'environnement
-//     let api_key = env::var("HELIUS_API_KEY")
-//         .unwrap_or_else(|_| "f3128924-15da-4703-8e52-efba4648eee5".to_string());
-    
-//     match data::solana_client::get_solana_metrics(api_key).await {
-//         Ok(metrics) => {
-//             println!("✅ Métriques récupérées avec succès");
-            
-//             Json(serde_json::json!({
-//                 "status": "success",
-//                 "total_transactions": metrics.total_transactions,
-//                 "current_slot": metrics.current_slot,
-//                 "estimated_tps": metrics.estimated_tps,
-//                 "biggest_transaction_sol": metrics.biggest_transaction_sol,
-//                 "biggest_transaction_slot": metrics.biggest_transaction_slot,
-//                 "biggest_transaction_time": metrics.biggest_transaction_time,
-//                 "performance_samples_count": metrics.performance_samples_count,
-//                 "performance_period_hours": metrics.performance_period_hours,
-//                 "non_vote_transactions": metrics.non_vote_transactions,
-//                 "network_status": metrics.network_status,
-//                 "last_update": metrics.last_update,
-//                 "analysis_duration_ms": metrics.analysis_duration_ms
-//             }))
-//         }
-//         Err(e) => {
-//             eprintln!("❌ Erreur lors de la récupération des métriques: {}", e);
-            
-//             Json(serde_json::json!({
-//                 "status": "error", 
-//                 "message": format!("Erreur API Helius: {}", e),
-//                 "total_transactions": 0,
-//                 "current_slot": 0,
-//                 "estimated_tps": 0.0,
-//                 "biggest_transaction_sol": 0.0
-//             }))
-//         }
-//     }
-// }
-
 
 async fn get_solana_data() -> Json<serde_json::Value> {
     // Récupérer la clé API depuis les variables d'environnement
