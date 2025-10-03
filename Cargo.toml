@@ -11,6 +11,8 @@ crate-type = ["cdylib", "rlib"]
 leptos = { version = "0.6", features = ["csr"], optional = true }
 leptos_meta = { version = "0.6", features = ["csr"], optional = true }
 leptos_router = { version = "0.6", features = ["csr"], optional = true }
+tokio-tungstenite = "0.21"
+futures-util = "0.3"
 
 # Backend framework
 axum = { version = "0.7", optional = true }
