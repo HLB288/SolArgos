@@ -11,13 +11,15 @@ crate-type = ["cdylib", "rlib"]
 leptos = { version = "0.6", features = ["csr"], optional = true }
 leptos_meta = { version = "0.6", features = ["csr"], optional = true }
 leptos_router = { version = "0.6", features = ["csr"], optional = true }
-tokio-tungstenite = "0.21"
-futures-util = "0.3"
 
 # Backend framework
-axum = { version = "0.7", optional = true }
+axum = { version = "0.7", features = ["ws"], optional = true }
 tokio = { version = "1.0", features = ["full"], optional = true }
 tower-http = { version = "0.5", features = ["fs", "set-header"], optional = true }
+
+# WebSocket
+tokio-tungstenite = { version = "0.21", features = ["native-tls"], optional = true }
+futures-util = { version = "0.3", optional = true }
 
 # HTTP client pour Helius API
 reqwest = { version = "0.11", features = ["json"] }
@@ -48,6 +50,8 @@ ssr = [
     "dep:tokio",
     "dep:tower-http",
     "dep:env_logger",
+    "dep:tokio-tungstenite",
+    "dep:futures-util",
 ]
 csr = [
     "dep:leptos",

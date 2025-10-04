@@ -65,3 +65,10 @@ pub fn format_number(num: u64) -> String {
         .rev()
         .collect::<String>()
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PerformanceSamplesResponse {
+    pub jsonrpc: String,
+    pub id: String,
+    pub result: Vec<PerformanceSample>,
+}
