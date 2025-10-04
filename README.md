@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Solana Analytics Dashboard
 
 > Real-time blockchain analytics platform built entirely in Rust
@@ -381,3 +382,6 @@ For questions or support, please open an issue on GitHub.
 ---
 
 **Built with Rust** - Zero-cost abstractions, memory safety, and fearless concurrency.
+=======
+
+>>>>>>> 4c4d9b5088d927b023c9c92b78d43f5b96ea9be0
